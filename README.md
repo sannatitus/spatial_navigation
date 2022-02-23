@@ -1,4 +1,4 @@
-# Spatial navigation video processing
+# Spatial navigation video processing repository
 
 ## Personal repository to address various video processing challenges arising in the 'panphylogenetic' spatial navigation project.
 
