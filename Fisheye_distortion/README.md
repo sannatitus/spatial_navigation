@@ -3,7 +3,7 @@
 
 This folder will contain python code to address the 'fisheye' distortion associated with FLIR Blackfly drivers. A checkerboard with equal checkers (2cm * 2cm), orientated with odd (7) and even (10) checkers in the length and width is filmed; calibration is completed posthoc. 
 
-## To film checkerboard ~ 
+## To film ~ 
 From ​https://docs.nvidia.com/vpi/sample_fisheye.html​
 "Move the checkerboard target from one side of the camera's field of view to the other, both horizontally and vertically.
 The accumulated checkerboard poses should fill the entire camera's field of view uniformly. The density of checkerboard detections should be roughly the same in all areas of the field of view.
