@@ -1,4 +1,4 @@
-# conda create & activate allied-vision-github-try ??
+# conda create & activate allied-vision-acquisition
 
 from time import sleep
 from pymba import Vimba, Frame
