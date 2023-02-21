@@ -1,0 +1,68 @@
+# conda create & activate allied-vision-github-try ??
+
+from time import sleep
+from pymba import Vimba, Frame
+from typing import Optional
+import cv2
+
+
+def display_frame(frame: Frame, delay: Optional[int] = 1) -> None:
+    """
+    Displays the acquired frame.
+    :param frame: The frame object to display.
+    :param delay: Display delay in milliseconds, use 0 for indefinite.
+    """
+
+    PIXEL_FORMATS_CONVERSIONS = {
+        'BayerRG8': cv2.COLOR_BAYER_RG2RGB,
+    }
+
+    print('Frame: %d\r' % frame.data.frameID, end="")
+
+    # get a copy of the frame data
+    image = frame.buffer_data_numpy()
+
+    # convert colour space if desired
+    try:
+        image = cv2.cvtColor(image, PIXEL_FORMATS_CONVERSIONS[frame.pixel_format])
+    except KeyError:
+        pass
+
+    # write image to output file
+    out.write(image)
+
+    # display image
+    cv2.imshow('Image', image)
+    cv2.waitKey(delay)
+
+
+with Vimba() as vimba:
+    camera = vimba.camera(0)
+    #might need to change this to 1. depends on port number 
+    camera.open()
+
+    # Define the codec and create VideoWriter object
+    fourcc = cv2.VideoWriter_fourcc(*'X264')
+    out = cv2.VideoWriter(r'C:\Users\Sanna\Desktop\output.mp4', fourcc, 187.37, (640, 480))
+    #have to change fps here AND below. 
+
+    camera.Height = 480
+    camera.Width = 640
+    camera.AcquisitionFrameRateAbs = 187.37
+
+    # arm the camera and provide a function to be called upon frame ready
+    camera.arm('Continuous', display_frame)
+    camera.start_frame_acquisition()
+
+    # stream images for a while...
+    sleep(61)
+    # I believe this is the number of seconds you acquire for, minus 1 (ie, 10 will yeild 9 seconds)
+
+    # stop frame acquisition
+    # start_frame_acquisition can simply be called again if the camera is still armed
+    camera.stop_frame_acquisition()
+    sleep(0.2)
+    camera.disarm()
+
+    camera.close()
+    out.release()
