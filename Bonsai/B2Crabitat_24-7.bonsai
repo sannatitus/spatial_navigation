@@ -7,6 +7,7 @@
                  xmlns:sys="clr-namespace:System;assembly=mscorlib"
                  xmlns:viz="clr-namespace:Bonsai.Design.Visualizers;assembly=Bonsai.Design.Visualizers"
                  xmlns:wie="clr-namespace:Bonsai.Windows.Input;assembly=Bonsai.Windows.Input"
+                 xmlns:dsp="clr-namespace:Bonsai.Dsp;assembly=Bonsai.Dsp"
                  xmlns="https://bonsai-rx.org/2018/workflow">
   <Workflow>
     <Nodes>
@@ -239,8 +240,8 @@
             <Expression xsi:type="IncludeWorkflow" Path="Aeon.Acquisition:SpinnakerVideoSource.bonsai">
               <TriggerSource>GlobalTrigger</TriggerSource>
               <TriggerFrequency>GlobalTriggerFrequency</TriggerFrequency>
-              <ExposureTime>INF</ExposureTime>
-              <SerialNumber>21196934</SerialNumber>
+              <ExposureTime>10000</ExposureTime>
+              <SerialNumber>23593997</SerialNumber>
               <Gain>0</Gain>
               <Binning>1</Binning>
               <FrameEvents>Camera1</FrameEvents>
@@ -248,8 +249,8 @@
             <Expression xsi:type="IncludeWorkflow" Path="Aeon.Acquisition:SpinnakerVideoSource.bonsai">
               <TriggerSource>GlobalTrigger</TriggerSource>
               <TriggerFrequency>GlobalTriggerFrequency</TriggerFrequency>
-              <ExposureTime>INF</ExposureTime>
-              <SerialNumber>23106229</SerialNumber>
+              <ExposureTime>12500</ExposureTime>
+              <SerialNumber>23232640</SerialNumber>
               <Gain>0</Gain>
               <Binning>1</Binning>
               <FrameEvents>Camera2</FrameEvents>
@@ -257,8 +258,8 @@
             <Expression xsi:type="IncludeWorkflow" Path="Aeon.Acquisition:SpinnakerVideoSource.bonsai">
               <TriggerSource>GlobalTrigger</TriggerSource>
               <TriggerFrequency>GlobalTriggerFrequency</TriggerFrequency>
-              <ExposureTime>INF</ExposureTime>
-              <SerialNumber>23232640</SerialNumber>
+              <ExposureTime>12500</ExposureTime>
+              <SerialNumber>23354693</SerialNumber>
               <Gain>0</Gain>
               <Binning>1</Binning>
               <FrameEvents>Camera3</FrameEvents>
@@ -266,8 +267,8 @@
             <Expression xsi:type="IncludeWorkflow" Path="Aeon.Acquisition:SpinnakerVideoSource.bonsai">
               <TriggerSource>GlobalTrigger</TriggerSource>
               <TriggerFrequency>GlobalTriggerFrequency</TriggerFrequency>
-              <ExposureTime>INF</ExposureTime>
-              <SerialNumber>23354693</SerialNumber>
+              <ExposureTime>12500</ExposureTime>
+              <SerialNumber>23106229</SerialNumber>
               <Gain>0</Gain>
               <Binning>1</Binning>
               <FrameEvents>Camera4</FrameEvents>
@@ -414,10 +415,98 @@
       <Expression xsi:type="MulticastSubject">
         <Name>StopCameras</Name>
       </Expression>
+      <Expression xsi:type="SubscribeSubject">
+        <Name>Camera1</Name>
+      </Expression>
+      <Expression xsi:type="MemberSelector">
+        <Selector>Seconds</Selector>
+      </Expression>
+      <Expression xsi:type="Combinator">
+        <Combinator xsi:type="dsp:Difference">
+          <dsp:Order>1</dsp:Order>
+        </Combinator>
+      </Expression>
+      <Expression xsi:type="VisualizerMapping" />
+      <Expression xsi:type="SubscribeSubject">
+        <Name>Camera2</Name>
+      </Expression>
+      <Expression xsi:type="MemberSelector">
+        <Selector>Seconds</Selector>
+      </Expression>
+      <Expression xsi:type="Combinator">
+        <Combinator xsi:type="dsp:Difference">
+          <dsp:Order>1</dsp:Order>
+        </Combinator>
+      </Expression>
+      <Expression xsi:type="VisualizerMapping" />
+      <Expression xsi:type="SubscribeSubject">
+        <Name>Camera3</Name>
+      </Expression>
+      <Expression xsi:type="MemberSelector">
+        <Selector>Seconds</Selector>
+      </Expression>
+      <Expression xsi:type="Combinator">
+        <Combinator xsi:type="dsp:Difference">
+          <dsp:Order>1</dsp:Order>
+        </Combinator>
+      </Expression>
+      <Expression xsi:type="VisualizerMapping" />
+      <Expression xsi:type="SubscribeSubject">
+        <Name>Camera4</Name>
+      </Expression>
+      <Expression xsi:type="MemberSelector">
+        <Selector>Seconds</Selector>
+      </Expression>
+      <Expression xsi:type="Combinator">
+        <Combinator xsi:type="dsp:Difference">
+          <dsp:Order>1</dsp:Order>
+        </Combinator>
+      </Expression>
+      <Expression xsi:type="VisualizerMapping" />
+      <Expression xsi:type="viz:TableLayoutPanelBuilder">
+        <viz:ColumnCount>1</viz:ColumnCount>
+        <viz:RowCount>4</viz:RowCount>
+        <viz:ColumnStyles />
+        <viz:RowStyles />
+        <viz:CellSpans />
+      </Expression>
+      <Expression xsi:type="SubscribeSubject">
+        <Name>VideoEvents</Name>
+      </Expression>
+      <Expression xsi:type="p1:Parse">
+        <harp:Register xsi:type="p1:TimestampedPwmRiseEvent" />
+      </Expression>
+      <Expression xsi:type="MemberSelector">
+        <Selector>Seconds</Selector>
+      </Expression>
+      <Expression xsi:type="Combinator">
+        <Combinator xsi:type="dsp:Difference">
+          <dsp:Order>1</dsp:Order>
+        </Combinator>
+      </Expression>
     </Nodes>
     <Edges>
       <Edge From="3" To="4" Label="Source1" />
       <Edge From="5" To="6" Label="Source1" />
+      <Edge From="7" To="8" Label="Source1" />
+      <Edge From="8" To="9" Label="Source1" />
+      <Edge From="9" To="10" Label="Source1" />
+      <Edge From="10" To="23" Label="Source1" />
+      <Edge From="11" To="12" Label="Source1" />
+      <Edge From="12" To="13" Label="Source1" />
+      <Edge From="13" To="14" Label="Source1" />
+      <Edge From="14" To="23" Label="Source2" />
+      <Edge From="15" To="16" Label="Source1" />
+      <Edge From="16" To="17" Label="Source1" />
+      <Edge From="17" To="18" Label="Source1" />
+      <Edge From="18" To="23" Label="Source3" />
+      <Edge From="19" To="20" Label="Source1" />
+      <Edge From="20" To="21" Label="Source1" />
+      <Edge From="21" To="22" Label="Source1" />
+      <Edge From="22" To="23" Label="Source4" />
+      <Edge From="24" To="25" Label="Source1" />
+      <Edge From="25" To="26" Label="Source1" />
+      <Edge From="26" To="27" Label="Source1" />
     </Edges>
   </Workflow>
 </WorkflowBuilder>
