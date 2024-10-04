@@ -1,4 +1,5 @@
-#%% Sanna's script to randomly select husbandry videos for creating an activity budget. Composed by Sanna, September 2023 s.titus@ucl.ac.uk
+#%% Random selection of husbandry videos for creating an activity budget. Data was collected throughout 2022-2023 in two crabitats. This script selects dates for observation, equal amongst seasons. 
+# Composed by Sanna, September 2023 s.titus@ucl.ac.uk
 import os
 from datetime import datetime, timedelta, time
 import random
