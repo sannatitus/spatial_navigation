@@ -5,7 +5,7 @@
     # ssh hpc-gw1
     # conda activate crab-activity
     # cd /ceph/zoo/users/stitus/husbandry-article/
-    # tr -d '\r' <activity-budget+_analysis_small-crabitats-ssh.sh> actibity-budget_analysis_small-crabitats-ssh-2.sh
+    # tr -d '\r' <activity-budget_analysis_small-crabitats-ssh.sh> activity-budget_analysis_small-crabitats-ssh-2.sh
     # sbatch activity-budget_analysis_small-crabitats-ssh-2.sh
     # squeue -u stitus
 
