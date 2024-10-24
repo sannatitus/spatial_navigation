@@ -5,7 +5,7 @@
     # ssh hpc-gw1
     # conda activate crab-activity
     # cd /ceph/zoo/users/stitus/husbandry-article/
-    # tr -d '\r' <activity-budget_cleaning-validation-NV-ssh.sh> activity-budget_cleaning-validation-NV-ssh.sh
+    ## if line endings are in windows (CRLF) not linux (LF), can change in VS code or this: tr -d '\r' <activity-budget_cleaning-validation-NV-ssh.sh> activity-budget_cleaning-validation-NV-ssh-linux.sh
     # sbatch activity-budget_cleaning-validation-NV-ssh.sh
     # squeue -u stitus
 
