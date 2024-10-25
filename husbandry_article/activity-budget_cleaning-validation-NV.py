@@ -12,7 +12,7 @@
 import pandas as pd
 import os
 import datetime
-#################################################################### edit here when graduating from subset to final data 
+#################################################################### 
 file_path = r'/ceph/zoo/users/stitus/husbandry-article/husbandry-article_selected_data.xlsx'
 # df = pd.read_excel(file_path, sheet_name='data')
 df = pd.read_excel(file_path, sheet_name='data', engine='openpyxl') # this engine is necessary for the xlsb. the subset is standard xlsx 
@@ -184,8 +184,8 @@ def calculate_nv_crabs_with_sex(df):
         present_females = group['present females'].iloc[0]
         
         # Get the observed male and female crab counts (excluding NV crabs)
-        observed_males = group.loc[(group['instantaneous behaviour'] != 'NV') & (group['sex'] == 'm'), 'crab ID'].nunique()
-        observed_females = group.loc[(group['instantaneous behaviour'] != 'NV') & (group['sex'] == 'f'), 'crab ID'].nunique()
+        observed_males = group.loc[(group['sex'] == 'm'), 'crab ID'].nunique()
+        observed_females = group.loc[(group['sex'] == 'f'), 'crab ID'].nunique()
         
         # Calculate the number of NV males and NV females
         num_nv_males = present_males - observed_males
