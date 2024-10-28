@@ -167,10 +167,12 @@ if validation_results:
     validation_summary_df.to_excel(validation_summary_path, index=False)
     print(f"Validation summary saved to: {validation_summary_path}")
 else:
+    no_issues_df = pd.DataFrame({'Message': ['No validation issues found.']})
+    no_issues_df.to_excel(f"{file_name}_cleaned_validation.xlsx", index=False)
     print("All crab IDs have the correct number of rows (30) in each observation window.")
-    # CALCULATE NV PRESENCE (assign correct sexes, and maintain column/row order with 30 rows per NV crab (i.e., full obs window)) 
 
 
+# CALCULATE NV PRESENCE (assign correct sexes, and maintain column/row order with 30 rows per NV crab (i.e., full obs window)) 
 def calculate_nv_crabs_with_debugging(df):
     complete_data = pd.DataFrame()  # Final DataFrame to accumulate validated data
 
@@ -321,30 +323,31 @@ def validate_data(df_with_nv_debugged):
     # Create a DataFrame from the results list
     validation_results_df_with_nv = pd.DataFrame(validation_results)
 
-    # Filter out results with 0 missing rows for summary
-    filtered_validation_results_df = validation_results_df_with_nv[validation_results_df_with_nv['missing rows'] != 0]
+    # Filter out results with 0 missing rows
+    validation_results_df_with_nv = validation_results_df_with_nv[validation_results_df_with_nv['missing rows'] != 0]
 
     # Save duplicates if any
     duplicates_df_with_nv = pd.DataFrame(duplicates_list)
 
     # Display the validation summary
-    print(filtered_validation_results_df)
+    print(validation_results_df_with_nv)
     print("Duplicates found:")
     print(duplicates_df_with_nv)
 
-    return filtered_validation_results_df, duplicates_df_with_nv
+    if validation_results_df_with_nv:
+        validation_summary_df.to_excel(f"{file_name}_cleaned+NV_validation.xlsx", index=False)
+        print(f"Validation summary saved to: {validation_summary_path}")
+    else:
+        no_issues_df = pd.DataFrame({'Message': ['No validation issues found.']})
+        no_issues_df.to_excel(f"{file_name}_cleaned+NV_validation.xlsx", index=False)
+        print("All crab IDs have the correct number of rows (30) in each observation window.")
 
-# Use the validation function and save outputs
-validation_summary, duplicates = validate_data(df_with_nv_debugged)
+    if duplicates_df_with_nv:
+        duplicates_list.to_excel(f"{file_name}_cleaned+NV_duplication.xlsx", index=False)
+        print(f"Duplication summary saved to: {validation_summary_path}")
+    else:
+        no_issues_df = pd.DataFrame({'Message': ['No duplicates found.']})
+        no_issues_df.to_excel(f"{file_name}_cleaned+NV_duplicates.xlsx", index=False)
+        print("No crab IDs possess duplicates.")
 
-# Save validation summary to Excel regardless of issues
-validation_summary_path = f"{file_name}_cleaned+NV_validation.xlsx"
-validation_summary.to_excel(validation_summary_path, index=False)
-
-# Optionally, save duplicates to a separate Excel file
-duplicates_path = f"{file_name}_duplicates.xlsx"
-duplicates.to_excel(duplicates_path, index=False) if not duplicates.empty else None
-
-print(f"Validation summary saved to: {validation_summary_path}")
-if not duplicates.empty:
-    print(f"Duplicates saved to: {duplicates_path}")
+    return validation_results_df_with_nv, duplicates_df_with_nv
