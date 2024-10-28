@@ -334,20 +334,27 @@ def validate_data(df_with_nv_debugged):
     print("Duplicates found:")
     print(duplicates_df_with_nv)
 
-    if validation_results_df_with_nv:
-        validation_summary_df.to_excel(f"{file_name}_cleaned+NV_validation.xlsx", index=False)
-        print(f"Validation summary saved to: {validation_summary_path}")
-    else:
-        no_issues_df = pd.DataFrame({'Message': ['No validation issues found.']})
-        no_issues_df.to_excel(f"{file_name}_cleaned+NV_validation.xlsx", index=False)
-        print("All crab IDs have the correct number of rows (30) in each observation window.")
-
-    if duplicates_df_with_nv:
-        duplicates_list.to_excel(f"{file_name}_cleaned+NV_duplication.xlsx", index=False)
-        print(f"Duplication summary saved to: {validation_summary_path}")
-    else:
-        no_issues_df = pd.DataFrame({'Message': ['No duplicates found.']})
-        no_issues_df.to_excel(f"{file_name}_cleaned+NV_duplicates.xlsx", index=False)
-        print("No crab IDs possess duplicates.")
-
     return validation_results_df_with_nv, duplicates_df_with_nv
+
+# Call the validate_data function
+validation_results_df_with_nv, duplicates_df_with_nv = validate_data(df_with_nv_debugged)
+
+# Create Excel files based on the validation results
+validation_summary_path = f"{file_name}_cleaned+NV_validation.xlsx"
+duplicates_summary_path = f"{file_name}_cleaned+NV_duplicates.xlsx"
+
+if not validation_results_df_with_nv.empty:
+    validation_results_df_with_nv.to_excel(validation_summary_path, index=False)
+    print(f"Validation summary saved to: {validation_summary_path}")
+else:
+    no_issues_df = pd.DataFrame({'Message': ['No validation issues found.']})
+    no_issues_df.to_excel(validation_summary_path, index=False)
+    print("All crab IDs have the correct number of rows (30) in each observation window.")
+
+if not duplicates_df_with_nv.empty:
+    duplicates_df_with_nv.to_excel(duplicates_summary_path, index=False)
+    print(f"Duplication summary saved to: {duplicates_summary_path}")
+else:
+    no_duplicates_df = pd.DataFrame({'Message': ['No duplicates found.']})
+    no_duplicates_df.to_excel(duplicates_summary_path, index=False)
+    print("No crab IDs possess duplicates.")
