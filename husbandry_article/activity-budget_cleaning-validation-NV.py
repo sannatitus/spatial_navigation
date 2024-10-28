@@ -6,14 +6,14 @@
     # conda activate crab-activity
     # cd /ceph/zoo/users/stitus/husbandry-article/
     ## if line endings are in windows (CRLF) not linux (LF), can change in VS code or this: tr -d '\r' <activity-budget_cleaning-validation-NV-ssh.sh> activity-budget_cleaning-validation-NV-ssh-linux.sh
-    # sbatch activity-budget_cleaning-validation-NV-ssh.sh ##job submission
+    # sbatch activity-budget_cleaning-validation-NV-ssh.sh ##submits the job 
     # squeue -u stitus
 
 import pandas as pd
 import os
 import datetime
-#################################################################### 
-file_path = r'/ceph/zoo/users/stitus/husbandry-article/husbandry-article_selected_data.xlsx'
+####################################################################
+file_path = r'/ceph/zoo/users/stitus/husbandry-article/husbandry-article_selected-data.xlsx'
 # df = pd.read_excel(file_path, sheet_name='data')
 df = pd.read_excel(file_path, sheet_name='data', engine='openpyxl') # this engine is necessary for the xlsb. the subset is standard xlsx 
 ####################################################################
@@ -170,37 +170,39 @@ else:
     print("All crab IDs have the correct number of rows (30) in each observation window.")
     # CALCULATE NV PRESENCE (assign correct sexes, and maintain column/row order with 30 rows per NV crab (i.e., full obs window)) 
 
-# Function to calculate NV crabs
-def calculate_nv_crabs_with_sex(df):
-    updated_rows = []  # Placeholder for updated rows with NV crabs
 
-    # Group by video file, tide category, and observation period
+def calculate_nv_crabs_with_debugging(df):
+    complete_data = pd.DataFrame()  # Final DataFrame to accumulate validated data
+
+    # Group by video file, tide category, and observation start period
     grouped = df.groupby(['video file', 'tide category', 'selected observation period start'])
 
     for (video_file, tide_category, obs_start), group in grouped:
-        # Get the present population details
         present_population = group['present population'].iloc[0]
         present_males = group['present males'].iloc[0]
         present_females = group['present females'].iloc[0]
-        
-        # Get the observed male and female crab counts (excluding NV crabs)
-        observed_males = group.loc[(group['sex'] == 'm'), 'crab ID'].nunique()
-        observed_females = group.loc[(group['sex'] == 'f'), 'crab ID'].nunique()
-        
-        # Calculate the number of NV males and NV females
-        num_nv_males = present_males - observed_males
-        num_nv_females = present_females - observed_females
-        
-        # Add NV males with 30 rows each
+
+        observed_males = group.loc[group['sex'] == 'm', 'crab ID'].nunique()
+        observed_females = group.loc[group['sex'] == 'f', 'crab ID'].nunique()
+
+        num_nv_males = max(0, present_males - observed_males)
+        num_nv_females = max(0, present_females - observed_females)
+
+        print(f"Processing: {video_file}, {tide_category}, {obs_start}")
+        print(f"Expected NV males: {num_nv_males}, Expected NV females: {num_nv_females}")
+
+        # Check if adding the NV data will result in the expected row count
+        nv_rows = pd.DataFrame()  # Temp DataFrame for current NV rows
+
         for i in range(1, num_nv_males + 1):
-            for minute in range(1, 31):  # Create 30 rows per NV male
+            for minute in range(1, 31):
                 nv_male_row = {
                     'video file': video_file,
                     'crabitat': group['crabitat'].iloc[0],
                     'season': group['season'].iloc[0],
                     'day type': group['day type'].iloc[0],
                     'tide category': tide_category,
-                    'tide type': group['tide type'].iloc[0],  # Add tide type
+                    'tide type': group['tide type'].iloc[0],
                     'present population': present_population,
                     'present sex ratio': group['present sex ratio'].iloc[0],
                     'present males': present_males,
@@ -209,22 +211,21 @@ def calculate_nv_crabs_with_sex(df):
                     'real time': group['real time'].iloc[0],
                     'observation minute from start': minute,
                     'crab ID': f'NV_m{i}',
-                    'sex': 'm',  # Assign male
+                    'sex': 'm',
                     'instantaneous behaviour': 'NV',
-                    'human visible?': 'N'  # Mark NV crabs as not visible
+                    'human visible?': 'N'
                 }
-                updated_rows.append(pd.DataFrame([nv_male_row]))
-        
-        # Add NV females with 30 rows each
+                nv_rows = pd.concat([nv_rows, pd.DataFrame([nv_male_row])], ignore_index=True)
+
         for i in range(1, num_nv_females + 1):
-            for minute in range(1, 31):  # Create 30 rows per NV female
+            for minute in range(1, 31):
                 nv_female_row = {
                     'video file': video_file,
                     'crabitat': group['crabitat'].iloc[0],
                     'season': group['season'].iloc[0],
                     'day type': group['day type'].iloc[0],
                     'tide category': tide_category,
-                    'tide type': group['tide type'].iloc[0],  # Add tide type
+                    'tide type': group['tide type'].iloc[0],
                     'present population': present_population,
                     'present sex ratio': group['present sex ratio'].iloc[0],
                     'present males': present_males,
@@ -233,59 +234,57 @@ def calculate_nv_crabs_with_sex(df):
                     'real time': group['real time'].iloc[0],
                     'observation minute from start': minute,
                     'crab ID': f'NV_f{i}',
-                    'sex': 'f',  # Assign female
+                    'sex': 'f',
                     'instantaneous behaviour': 'NV',
-                    'human visible?': 'N'  # Mark NV crabs as not visible
+                    'human visible?': 'N'
                 }
-                updated_rows.append(pd.DataFrame([nv_female_row]))
+                nv_rows = pd.concat([nv_rows, pd.DataFrame([nv_female_row])], ignore_index=True)
 
-        # Add the original group of observed crabs back to the updated rows
-        updated_rows.append(group)
+        # Concatenate observed data and NV rows
+        full_group_data = pd.concat([group, nv_rows], ignore_index=True)
+        expected_rows = present_population * 30
+        actual_rows = full_group_data.shape[0]
 
-    # Concatenate all the updated rows (including NV crabs) into a single DataFrame
-    nv_df = pd.concat(updated_rows, ignore_index=True)
+        print(f"Expected total rows for {video_file} {tide_category}: {expected_rows}, Actual: {actual_rows}")
 
-    # Sort the rows based on the original observation order
-    nv_df = nv_df.sort_values(by=['video file', 'tide category', 'selected observation period start', 'observation minute from start'])
+        # Append to final DataFrame only if row count matches expectation
+        if actual_rows == expected_rows:
+            complete_data = pd.concat([complete_data, full_group_data], ignore_index=True)
+        else:
+            print(f"Skipping {video_file} {tide_category} due to row mismatch.")
 
-    # Ensure the correct column order
+    # Sort and reorder columns
     column_order = ['video file', 'crabitat', 'season', 'day type', 'tide category', 'tide type', 'present population',
                     'present sex ratio', 'present males', 'present females', 'selected observation period start',
                     'real time', 'observation minute from start', 'crab ID', 'sex', 'instantaneous behaviour', 'human visible?']
 
-    nv_df = nv_df[column_order]
+    complete_data = complete_data[column_order]
+    return complete_data
 
-    return nv_df
-
-# Apply the NV calculation function
-df_with_nv = calculate_nv_crabs_with_sex(df_with_tide_categories_and_types)
-
-# Remove rows where 'crab ID' is exactly 'NV' - i.e., obs windows where no one showed 
-df_with_nv = df_with_nv[df_with_nv['crab ID'] != 'NV']
+# Run the debugging function
+df_with_nv_debugged = calculate_nv_crabs_with_debugging(df_with_tide_categories_and_types)
 
 # Save the output to a new file
 output_path_2 = f"{file_name}_cleaned+NV{file_extension}"
-df_with_nv.to_excel(output_path_2, index=False)
+df_with_nv_debugged.to_excel(output_path_2, index=False)
 print(f"Cleaned dataframe including NVs saved to: {output_path_2}")
-# DATA VALIDATION (_cleaned+NV) (30obs/crabID + NV)
-df_with_nv = df_with_nv[df_with_nv['crab ID'] != 'NV']
 
-def validate_data(df):
+def validate_data(df_with_nv_debugged):
     # Create a list to store validation results
     validation_results = []
     # Keep track of duplicates
     duplicates_list = []
 
     # Group by video file and tide category
-    grouped = df.groupby(['video file', 'tide category'])
+    grouped = df_with_nv_debugged.groupby(['video file', 'tide category'])
 
     for (video_file, tide_category), group in grouped:
         # Calculate expected number of rows
         present_population = group['present population'].iloc[0]
         expected_rows = present_population * 30
         
-        # Calculate actual rows based on unique combinations
-        actual_rows = df[(df['video file'] == video_file) & (df['tide category'] == tide_category)].shape[0]
+        # Calculate actual rows directly from the group size
+        actual_rows = group.shape[0]
 
         missing_rows = expected_rows - actual_rows
 
@@ -312,39 +311,40 @@ def validate_data(df):
 
         # Check for NaN values in critical columns
         for column in ['video file', 'tide category', 'present population']:
-            if df[column].isnull().any():
-                print(f"NaN values found in column '{column}'.")
+            if group[column].isnull().any():
+                print(f"NaN values found in column '{column}' for video file {video_file}, tide category {tide_category}.")
 
         # Check observation minute range
-        if not ((df['observation minute from start'] >= 1).all() and (df['observation minute from start'] <= 30).all()):
-            print("Observation minutes out of expected range (1-30).")
+        if not ((group['observation minute from start'] >= 1).all() and (group['observation minute from start'] <= 30).all()):
+            print(f"Observation minutes out of expected range (1-30) for video file {video_file}, tide category {tide_category}.")
 
     # Create a DataFrame from the results list
-    validation_results_df = pd.DataFrame(validation_results)
+    validation_results_df_with_nv = pd.DataFrame(validation_results)
 
-    # Filter out results with 0 missing rows
-    validation_results_df = validation_results_df[validation_results_df['missing rows'] != 0]
+    # Filter out results with 0 missing rows for summary
+    filtered_validation_results_df = validation_results_df_with_nv[validation_results_df_with_nv['missing rows'] != 0]
 
     # Save duplicates if any
-    duplicates_df = pd.DataFrame(duplicates_list)
+    duplicates_df_with_nv = pd.DataFrame(duplicates_list)
 
     # Display the validation summary
-    print(validation_results_df)
+    print(filtered_validation_results_df)
     print("Duplicates found:")
-    print(duplicates_df)
+    print(duplicates_df_with_nv)
 
-    return validation_results_df, duplicates_df
+    return filtered_validation_results_df, duplicates_df_with_nv
 
 # Use the validation function and save outputs
-validation_summary, duplicates = validate_data(df)
+validation_summary, duplicates = validate_data(df_with_nv_debugged)
 
-# Save validation summary to Excel
+# Save validation summary to Excel regardless of issues
 validation_summary_path = f"{file_name}_cleaned+NV_validation.xlsx"
 validation_summary.to_excel(validation_summary_path, index=False)
-print(f"Validation summary saved to: {validation_summary_path}")
 
-# Save duplicates to CSV if needed
+# Optionally, save duplicates to a separate Excel file
+duplicates_path = f"{file_name}_duplicates.xlsx"
+duplicates.to_excel(duplicates_path, index=False) if not duplicates.empty else None
+
+print(f"Validation summary saved to: {validation_summary_path}")
 if not duplicates.empty:
-    duplicates_path = f"{file_name}_cleaned+NV_duplicates.csv"
-    duplicates.to_csv(duplicates_path, index=False)
     print(f"Duplicates saved to: {duplicates_path}")
